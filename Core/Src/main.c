@@ -29,7 +29,22 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef struct
+{
+	uint8_t target;
+	uint8_t button;
+	int8_t mouse_x;
+	int8_t mouse_y;
+	int8_t wheel;
+	uint8_t modifier;
+	uint8_t reserved;
+	uint8_t keycode1;
+	uint8_t keycode2;
+	uint8_t keycode3;
+	uint8_t keycode4;
+	uint8_t keycode5;
+	uint8_t keycode6;
+} bufferSPI;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -48,12 +63,20 @@ uint8_t kbdPress[9] = {0x02,0,0,0x10,0x0E,0x08,0x28,0,0};
 uint8_t kbdRelease[9] = {0x02,0,0,0,0,0,0,0,0};
 
 uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
+
+bufferSPI testbuf[2]={
+		{0b00000000,0x00,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b10000000,0x00,10,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+
+					};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void test_1(void);
+void test_2(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -99,15 +122,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_SPI_Transmit(&hspi1,&kbdPress,sizeof(kbdPress),100);
-	  HAL_Delay(100);
 
-	  HAL_SPI_Transmit(&hspi1,&kbdRelease,sizeof(kbdRelease),100);
-	  HAL_Delay(500);
-
-	  HAL_SPI_Transmit(&hspi1,&spi_transmit_buffer,sizeof(spi_transmit_buffer),10);
-	  HAL_Delay(1000);
-
+	  test_2();
 
     /* USER CODE END WHILE */
 
@@ -163,7 +179,26 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void test_1(void)
+{
+	  HAL_SPI_Transmit(&hspi1,&kbdPress,sizeof(kbdPress),100);
+	  HAL_Delay(100);
 
+	  HAL_SPI_Transmit(&hspi1,&kbdRelease,sizeof(kbdRelease),100);
+	  HAL_Delay(500);
+
+	  HAL_SPI_Transmit(&hspi1,&spi_transmit_buffer,sizeof(spi_transmit_buffer),10);
+	  HAL_Delay(1000);
+}
+
+void test_2(void)
+{
+	for (uint8_t i=0;i<2;i++)
+	{
+		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
+		HAL_Delay(1000);
+	}
+}
 /* USER CODE END 4 */
 
 /**
