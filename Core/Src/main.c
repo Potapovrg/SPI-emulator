@@ -64,13 +64,29 @@ uint8_t kbdRelease[9] = {0x02,0,0,0,0,0,0,0,0};
 
 uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
 
-bufferSPI testbuf[4]={
+bufferSPI otg_on={0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+bufferSPI otg_off={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+
+bufferSPI testbuf_1[4]={
 		{0b00000111,0x00,50,0,0,0b00000000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00},
 		{0b00000111,0x00,0,-50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
 		{0b00000111,0x00,-50,0,0,0b00100000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00},
 		{0b00000111,0x00,0,50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
 					};
+bufferSPI testbuf_2[4]={
+		{0b00001001,0x00,50,0,0,0b00000000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00},
+		{0b00001010,0x00,0,-50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00001100,0x00,-50,0,0,0b00100000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00},
+		{0b00001111,0x00,0,50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+					};
 
+bufferSPI testbuf[4]={
+		{0b00001001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00001010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00001111,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+					};
+uint8_t rcv_buf=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,7 +140,7 @@ int main(void)
   while (1)
   {
 
-	  test_2();
+	  test_1();
 
     /* USER CODE END WHILE */
 
@@ -182,27 +198,38 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void test_1(void)
 {
-	  HAL_SPI_Transmit(&hspi1,&kbdPress,sizeof(kbdPress),100);
-	  HAL_Delay(100);
-
-	  HAL_SPI_Transmit(&hspi1,&kbdRelease,sizeof(kbdRelease),100);
-	  HAL_Delay(500);
-
-	  HAL_SPI_Transmit(&hspi1,&spi_transmit_buffer,sizeof(spi_transmit_buffer),10);
-	  HAL_Delay(1000);
+	for (uint8_t i=0;i<4;i++)
+	{
+		rcv_buf=0;
+		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
+		//HAL_SPI_Receive(&hspi1,&rcv_buf,sizeof(rcv_buf),10);
+		//i++;
+		//HAL_Delay(100);
+		//HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
+		//HAL_SPI_Receive(&hspi1,&rcv_buf,sizeof(rcv_buf),1000);
+		HAL_Delay(1);
+	}
 }
-
 void test_2(void)
 {
+	HAL_Delay(1000);
+	HAL_SPI_Transmit(&hspi1,&otg_on,sizeof(otg_on),10);
+	HAL_Delay(5000);
+
 	for (uint8_t i=0;i<4;i++)
 	{
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
 		i++;
-		HAL_Delay(50);
+		HAL_Delay(100);
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
 		HAL_Delay(1000);
 	}
+	HAL_Delay(5000);
+	HAL_SPI_Transmit(&hspi1,&otg_off,sizeof(otg_on),10);
+	HAL_Delay(20000);
 }
+
+
 /* USER CODE END 4 */
 
 /**
