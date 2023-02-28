@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "crc.h"
 #include "spi.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -66,6 +67,8 @@ uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
 
 bufferSPI otg_on={0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 bufferSPI otg_off={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+bufferSPI check={0b00001000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+bufferSPI crc_check={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 bufferSPI testbuf_1[4]={
 		{0b00000111,0x00,50,0,0,0b00000000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00},
@@ -80,13 +83,21 @@ bufferSPI testbuf_2[4]={
 		{0b00001111,0x00,0,50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
 					};
 
-bufferSPI testbuf[4]={
+bufferSPI testbuf_3[4]={
 		{0b00001001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00001010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00001111,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 					};
+bufferSPI testbuf[4]={
+		{0b00000001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000111,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+					};
+
 uint8_t rcv_buf=0;
+uint8_t crc8=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,6 +105,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void test_1(void);
 void test_2(void);
+uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -131,6 +143,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -140,7 +153,7 @@ int main(void)
   while (1)
   {
 
-	  test_1();
+	  test_2();
 
     /* USER CODE END WHILE */
 
@@ -202,33 +215,36 @@ void test_1(void)
 	{
 		rcv_buf=0;
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		//HAL_SPI_Receive(&hspi1,&rcv_buf,sizeof(rcv_buf),10);
-		//i++;
-		//HAL_Delay(100);
-		//HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		//HAL_SPI_Receive(&hspi1,&rcv_buf,sizeof(rcv_buf),1000);
+		crc8=CRC_Calculate_software(&crc_check,sizeof(crc_check));
 		HAL_Delay(1);
+		HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
+		HAL_Delay(1000);
 	}
 }
 void test_2(void)
 {
-	HAL_Delay(1000);
-	HAL_SPI_Transmit(&hspi1,&otg_on,sizeof(otg_on),10);
-	HAL_Delay(5000);
+	uint8_t testvar=0b11000001;
+	HAL_SPI_Transmit(&hspi1,&testvar,sizeof(testvar),10);
+	crc8=CRC_Calculate_software(&testvar,sizeof(testvar));
+	HAL_Delay(10);
 
-	for (uint8_t i=0;i<4;i++)
-	{
-		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		i++;
-		HAL_Delay(100);
-		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		HAL_Delay(1000);
-	}
-	HAL_Delay(5000);
-	HAL_SPI_Transmit(&hspi1,&otg_off,sizeof(otg_on),10);
-	HAL_Delay(20000);
 }
 
+uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght) {
+	uint8_t CRC8 = 0xFF;
+	uint8_t size = (sizeof(*Data));
+	while (Buffer_lenght--) {
+		CRC8 ^= *Data++;
+		for (uint8_t i = 0; i < (sizeof(*Data) * 8); i++) {
+			if (CRC8 & 0x80) {
+				CRC8 = (CRC8 << 1u) ^ 0x50;
+			} else {
+				CRC8 = (CRC8 << 1u);
+			}
+		}
+	}
+	return CRC8;
+}
 
 /* USER CODE END 4 */
 
