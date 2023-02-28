@@ -153,7 +153,7 @@ int main(void)
   while (1)
   {
 
-	  test_2();
+	  test_1();
 
     /* USER CODE END WHILE */
 
@@ -215,7 +215,7 @@ void test_1(void)
 	{
 		rcv_buf=0;
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		crc8=CRC_Calculate_software(&crc_check,sizeof(crc_check));
+		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
 		HAL_Delay(1);
 		HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
 		HAL_Delay(1000);
@@ -231,13 +231,13 @@ void test_2(void)
 }
 
 uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght) {
-	uint8_t CRC8 = 0xFF;
+	uint8_t CRC8 = 0x00;
 	uint8_t size = (sizeof(*Data));
 	while (Buffer_lenght--) {
 		CRC8 ^= *Data++;
 		for (uint8_t i = 0; i < (sizeof(*Data) * 8); i++) {
 			if (CRC8 & 0x80) {
-				CRC8 = (CRC8 << 1u) ^ 0x50;
+				CRC8 = (CRC8 << 1u) ^ 0x07;
 			} else {
 				CRC8 = (CRC8 << 1u);
 			}
