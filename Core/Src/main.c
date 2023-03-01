@@ -143,7 +143,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
-  MX_CRC_Init();
+//  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -231,13 +231,13 @@ void test_2(void)
 }
 
 uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght) {
-	uint8_t CRC8 = 0x00;
+	uint8_t CRC8 = 0xFF;
 	uint8_t size = (sizeof(*Data));
 	while (Buffer_lenght--) {
 		CRC8 ^= *Data++;
 		for (uint8_t i = 0; i < (sizeof(*Data) * 8); i++) {
 			if (CRC8 & 0x80) {
-				CRC8 = (CRC8 << 1u) ^ 0x07;
+				CRC8 = (CRC8 << 1u) ^ 0x0A;
 			} else {
 				CRC8 = (CRC8 << 1u);
 			}
