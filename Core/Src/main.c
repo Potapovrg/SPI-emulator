@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "crc.h"
 #include "spi.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -67,7 +66,7 @@ uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
 
 bufferSPI otg_on={0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 bufferSPI otg_off={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-bufferSPI check={0b00001000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+bufferSPI check={0b00001000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF};
 bufferSPI crc_check={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 bufferSPI testbuf_1[4]={
@@ -89,11 +88,18 @@ bufferSPI testbuf_3[4]={
 		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00001111,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 					};
-bufferSPI testbuf[4]={
+bufferSPI testbuf_4[4]={
 		{0b00000001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00000010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00000111,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+					};
+
+bufferSPI testbuf[4]={
+		{0b00000001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 					};
 
 uint8_t rcv_buf=0;
@@ -143,7 +149,6 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
-//  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -216,7 +221,7 @@ void test_1(void)
 		rcv_buf=0;
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
-		HAL_Delay(1);
+		HAL_Delay(75);
 		HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
 		HAL_Delay(1000);
 	}
@@ -231,13 +236,13 @@ void test_2(void)
 }
 
 uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght) {
-	uint8_t CRC8 = 0xFF;
+	uint8_t CRC8 = 0x00;
 	uint8_t size = (sizeof(*Data));
 	while (Buffer_lenght--) {
 		CRC8 ^= *Data++;
 		for (uint8_t i = 0; i < (sizeof(*Data) * 8); i++) {
 			if (CRC8 & 0x80) {
-				CRC8 = (CRC8 << 1u) ^ 0x0A;
+				CRC8 = (CRC8 << 1u) ^ 07;
 			} else {
 				CRC8 = (CRC8 << 1u);
 			}
