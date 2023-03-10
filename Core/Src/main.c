@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "exec_time.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +49,7 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TEST
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,6 +64,8 @@ uint8_t kbdPress[9] = {0x02,0,0,0x10,0x0E,0x08,0x28,0,0};
 uint8_t kbdRelease[9] = {0x02,0,0,0,0,0,0,0,0};
 
 uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
+
+uint8_t spi_dummy_buffer[9]= {0x01,0,0,0,0,0xFF,0,0,0};
 
 bufferSPI otg_on={0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 bufferSPI otg_off={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -96,9 +99,9 @@ bufferSPI testbuf_4[4]={
 					};
 
 bufferSPI testbuf[4]={
-		{0b00000001,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000101,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
-		{0b00000010,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
+		{0b00000110,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 		{0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0xFF},
 					};
 
@@ -112,6 +115,7 @@ void SystemClock_Config(void);
 void test_1(void);
 void test_2(void);
 uint8_t CRC_Calculate_software(uint8_t *Data, uint8_t Buffer_lenght);
+float exec_time;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -150,7 +154,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+  DWT_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -159,6 +163,9 @@ int main(void)
   {
 
 	  test_1();
+	  //start_exec_time();
+	  //HAL_Delay(1000);
+	  //exec_time=stop_exec_time();
 
     /* USER CODE END WHILE */
 
@@ -216,14 +223,23 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void test_1(void)
 {
+	//HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
+	//HAL_Delay(50);
 	for (uint8_t i=0;i<4;i++)
 	{
-		rcv_buf=0;
+#ifdef TEST
+		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+#endif
+		//rcv_buf=0;
+		//start_exec_time();
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
+		//exec_time=stop_exec_time_float();
+		//exec_time=stop_exec_time();
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
-		HAL_Delay(75);
+		HAL_Delay(10);
 		HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
-		HAL_Delay(1000);
+		HAL_Delay(500);
+
 	}
 }
 void test_2(void)
