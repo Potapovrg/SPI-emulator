@@ -66,6 +66,7 @@ uint8_t kbdRelease[9] = {0x02,0,0,0,0,0,0,0,0};
 uint8_t spi_transmit_buffer[9]= {0x01,0,0,0,0,0,0,0,0};
 
 uint8_t spi_dummy_buffer[9]= {0x01,0,0,0,0,0xFF,0,0,0};
+uint8_t spi_receive_buffer[9]= {0,0,0,0,0,0,0,0,0};
 
 bufferSPI otg_on={0b00000100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 bufferSPI otg_off={0b00000000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -237,7 +238,8 @@ void test_1(void)
 		//exec_time=stop_exec_time();
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
 		HAL_Delay(10);
-		HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
+		//HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
+		HAL_SPI_TransmitReceive(&hspi1,&check,&spi_receive_buffer,sizeof(check),10);
 		HAL_Delay(500);
 
 	}
