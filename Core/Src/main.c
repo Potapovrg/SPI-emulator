@@ -224,32 +224,37 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void test_1(void)
 {
-	//HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
-	//HAL_Delay(50);
+//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
+//	HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
+//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+
+//	HAL_Delay(200);
+
 	for (uint8_t i=0;i<4;i++)
 	{
 #ifdef TEST
 		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
 #endif
-		//rcv_buf=0;
-		//start_exec_time();
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		//exec_time=stop_exec_time_float();
-		//exec_time=stop_exec_time();
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
+
 		HAL_Delay(10);
-		//HAL_SPI_Transmit(&hspi1,&check,sizeof(check),10);
+
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
 		HAL_SPI_TransmitReceive(&hspi1,&check,&spi_receive_buffer,sizeof(check),10);
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+
 		HAL_Delay(500);
 
 	}
 }
 void test_2(void)
 {
-	uint8_t testvar=0b11000001;
-	HAL_SPI_Transmit(&hspi1,&testvar,sizeof(testvar),10);
-	crc8=CRC_Calculate_software(&testvar,sizeof(testvar));
-	HAL_Delay(10);
+	HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
+	HAL_Delay(200);
 
 }
 
