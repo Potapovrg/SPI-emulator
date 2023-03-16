@@ -224,11 +224,11 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void test_1(void)
 {
-//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
-//	HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
-//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
+	HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
+	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
 
-//	HAL_Delay(200);
+	HAL_Delay(200);
 
 	for (uint8_t i=0;i<4;i++)
 	{
