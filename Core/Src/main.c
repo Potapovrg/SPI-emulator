@@ -50,6 +50,7 @@ typedef struct
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TEST
+#define CHECK
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -224,11 +225,13 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void test_1(void)
 {
+#ifdef DUMMY
 	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
 	HAL_SPI_Transmit(&hspi1,&spi_dummy_buffer,sizeof(spi_dummy_buffer),10);
 	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
 
 	HAL_Delay(200);
+#endif
 
 	for (uint8_t i=0;i<4;i++)
 	{
@@ -240,13 +243,13 @@ void test_1(void)
 		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
 
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
-
-		HAL_Delay(10);
+#ifdef CHECK
+		HAL_Delay(5);
 
 		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
 		HAL_SPI_TransmitReceive(&hspi1,&check,&spi_receive_buffer,sizeof(check),10);
 		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
-
+#endif
 		HAL_Delay(500);
 
 	}
