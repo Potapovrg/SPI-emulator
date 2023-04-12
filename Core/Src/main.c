@@ -66,17 +66,31 @@ typedef struct
 
 /* USER CODE BEGIN PV */
 
-bufferSPI testbuf[4]={
+bufferSPI testbuf_1[4]={
 		{0b00001111,0x00,50,0,0,0b00000000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00,0xE9,0x00,0x00,0x00},
 		{0b00001111,0x00,0,-50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
 		{0b00001111,0x00,-50,0,0,0b00100000,0x00,0x10,0x0E,0x08,0x28,0x00,0x00,0xEA,0x00,0x00,0x00},
 		{0b00001111,0x00,0,50,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
 					};//MKE Test with consumer
 
+bufferSPI testbuf[4]={
+		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x30,0xEA,0x00,0x00},
+		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00001100,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+					};//MKE Test consumer only
+
+bufferSPI testbuf_2[4]={
+		{0b00001000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00010000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00001000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0b00010000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+					};//MKE switch test
+
 bufferSPI check={0b00100000,0x00,0,0,0,0b00000000,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 
-uint8_t spi_receive_buffer=0;
+bufferSPI spi_receive_buffer;
 uint8_t crc8=0;
 /* USER CODE END PV */
 
@@ -207,21 +221,47 @@ void test_1(void)
 #ifdef TEST
 		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
 #endif
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
+		HAL_GPIO_WritePin(CS1_GPIO_Port,CS1_Pin,GPIO_PIN_SET);
+		HAL_Delay(1);
 		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(CS1_GPIO_Port,CS1_Pin,GPIO_PIN_RESET);
 
 		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
 #ifdef CHECK
-		HAL_Delay(5);
+		HAL_Delay(50);
 
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_SET);
+		HAL_GPIO_WritePin(CS1_GPIO_Port,CS1_Pin,GPIO_PIN_SET);
+		HAL_Delay(1);
 		HAL_SPI_TransmitReceive(&hspi1,&check,&spi_receive_buffer,sizeof(check),10);
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin,GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(CS1_GPIO_Port,CS1_Pin,GPIO_PIN_RESET);
 #endif
 		HAL_Delay(500);
 
 	}
+/*
+	for (uint8_t i=0;i<4;i++)
+	{
+#ifdef TEST
+		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+#endif
+		HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_SET);
+		HAL_Delay(1);
+		HAL_SPI_Transmit(&hspi1,&testbuf[i],sizeof(testbuf[i]),10);
+		HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_RESET);
+
+		crc8=CRC_Calculate_software(&testbuf[i],sizeof(testbuf[i]));
+#ifdef CHECK
+		HAL_Delay(50);
+
+		HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_SET);
+		HAL_Delay(1);
+		HAL_SPI_TransmitReceive(&hspi1,&check,&spi_receive_buffer,sizeof(check),10);
+		HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_RESET);
+#endif
+		HAL_Delay(250);
+
+	}
+*/
 }
 
 
